@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "LTX Video Generator",
+  "version": "1.0.0",
+  "description": "Generate videos from YouTube audio using LTX",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["https://www.youtube.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

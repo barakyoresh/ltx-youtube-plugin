@@ -1,0 +1,10 @@
+{
+  "name": "ltx-youtube-server",
+  "version": "1.0.0",
+  "description": "Local audio extraction server for LTX YouTube extension",
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
