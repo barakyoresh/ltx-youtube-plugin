@@ -140,7 +140,7 @@ function createPanel() {
       <div class="ltx-server-text">
         <strong>Server not running</strong>
         <p>Start the local server:</p>
-        <code>cd ~/Developer/ltx-youtube-extension/server && node index.js</code>
+        <code>cd path/to/ltx-youtube-extension/server && node index.js</code>
       </div>
     </div>
 
@@ -769,7 +769,6 @@ async function doRetake() {
 }
 
 async function saveVideoToFolder(videoBlob, prefix = 'ltx-video') {
-  console.log('saveVideoToFolder called, autoSave:', settings.autoSave, 'folder:', settings.saveFolder);
   if (!settings.autoSave) return null;
 
   try {
@@ -805,10 +804,9 @@ async function saveVideoToFolder(videoBlob, prefix = 'ltx-video') {
     }
 
     const result = await response.json();
-    console.log('Save result:', result);
     return result.path;
   } catch (err) {
-    console.error('Auto-save error:', err.message, err);
+    console.error('Auto-save error:', err.message);
     return null;
   }
 }
