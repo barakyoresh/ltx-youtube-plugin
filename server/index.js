@@ -25,6 +25,38 @@ function runCommand(cmd) {
   });
 }
 
+// Patterns that indicate YouTube/yt-dlp compatibility issues
+const YTDLP_UPDATE_PATTERNS = [
+  /HTTP Error 403/i,
+  /HTTP Error 410/i,
+  /SABR streaming/i,
+  /unable to download video data/i,
+  /unable to extract/i,
+  /video unavailable/i,
+  /Sign in to confirm your age/i,
+  /Private video/i,
+  /This video is not available/i,
+  /requested format not available/i,
+  /No video formats found/i,
+  /Unable to extract JS player/i,
+  /nsig extraction failed/i,
+  /Signature extraction failed/i,
+];
+
+function enhanceYtdlpError(errorMessage) {
+  const isYtdlpIssue = YTDLP_UPDATE_PATTERNS.some(pattern => pattern.test(errorMessage));
+
+  if (isYtdlpIssue) {
+    return `${errorMessage}\n\n` +
+      `This error is likely caused by YouTube changes. To fix:\n` +
+      `1. Update yt-dlp: pip install -U yt-dlp (or: brew upgrade yt-dlp)\n` +
+      `2. Restart this server\n` +
+      `See: https://github.com/yt-dlp/yt-dlp/issues/12482`;
+  }
+
+  return errorMessage;
+}
+
 const server = http.createServer(async (req, res) => {
   console.log(`${req.method} ${req.url}`);
 
@@ -296,9 +328,10 @@ const server = http.createServer(async (req, res) => {
         console.log('Done, sent', Math.round(base64.length / 1024), 'KB');
 
       } catch (err) {
-        console.error('Video extraction error:', err.message);
+        const errorMsg = enhanceYtdlpError(err.message);
+        console.error('Video extraction error:', errorMsg);
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message }));
+        res.end(JSON.stringify({ error: errorMsg }));
       } finally {
         // Cleanup
         fs.rm(tmpDir, { recursive: true }, () => {});
@@ -350,9 +383,10 @@ const server = http.createServer(async (req, res) => {
       console.log('Done, sent', Math.round(base64.length / 1024), 'KB');
 
     } catch (err) {
-      console.error('Error:', err.message);
+      const errorMsg = enhanceYtdlpError(err.message);
+      console.error('Audio extraction error:', errorMsg);
       res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: err.message }));
+      res.end(JSON.stringify({ error: errorMsg }));
     } finally {
       // Cleanup
       fs.rm(tmpDir, { recursive: true }, () => {});
