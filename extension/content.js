@@ -1001,6 +1001,13 @@ async function showResult(videoUrl, videoBlob) {
 
 // Create toggle button
 function createToggleButton() {
+  // Remove existing button if present (for SPA navigation)
+  const existing = document.getElementById('ltx-toggle');
+  if (existing) existing.remove();
+
+  // Only show button on video pages
+  if (!getVideoId()) return;
+
   const btn = document.createElement('button');
   btn.id = 'ltx-toggle';
   btn.innerHTML = '🎬';
@@ -1012,8 +1019,13 @@ function createToggleButton() {
   document.body.appendChild(btn);
 }
 
-// Initialize
+// Initialize on page load
 createToggleButton();
+
+// Re-initialize on YouTube SPA navigation
+window.addEventListener('yt-navigate-finish', () => {
+  createToggleButton();
+});
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
