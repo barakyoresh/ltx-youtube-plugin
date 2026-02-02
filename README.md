@@ -47,10 +47,54 @@ brew install yt-dlp ffmpeg
 
 The extension requires a local server to handle YouTube downloads and API proxying (due to CORS restrictions).
 
+#### Option A: Run manually (for testing)
+
 ```bash
 cd server
 npm install  # first time only
 node index.js
+```
+
+#### Option B: Run as background service (recommended)
+
+Run the server automatically on login without holding a terminal open:
+
+1. **Edit the plist file** to match your setup:
+   ```bash
+   # Open the file and update paths if needed
+   nano server/com.ltx.youtube-server.plist
+   ```
+
+   Update these values:
+   - Path to `node` (run `which node` to find yours)
+   - Path to `index.js` (where you cloned this repo)
+
+2. **Install the LaunchAgent:**
+   ```bash
+   cp server/com.ltx.youtube-server.plist ~/Library/LaunchAgents/
+   launchctl load ~/Library/LaunchAgents/com.ltx.youtube-server.plist
+   ```
+
+3. **Verify it's running:**
+   ```bash
+   curl http://localhost:3847/health
+   # Should return: {"status":"ok"}
+   ```
+
+**Managing the service:**
+
+```bash
+# View logs
+tail -f ~/Library/Logs/ltx-youtube-server.log
+
+# Restart (after updating code)
+launchctl stop com.ltx.youtube-server
+
+# Stop completely
+launchctl unload ~/Library/LaunchAgents/com.ltx.youtube-server.plist
+
+# Start again
+launchctl load ~/Library/LaunchAgents/com.ltx.youtube-server.plist
 ```
 
 The server runs on `http://localhost:3847`.
@@ -101,8 +145,9 @@ ltx-youtube-extension/
 │   ├── styles.css       # UI styles
 │   └── icon*.png        # Extension icons
 ├── server/
-│   ├── index.js         # Local proxy server
-│   └── package.json
+│   ├── index.js                      # Local proxy server
+│   ├── package.json
+│   └── com.ltx.youtube-server.plist  # macOS LaunchAgent config
 └── README.md
 ```
 
@@ -128,7 +173,24 @@ rm -rf ~/.ltx-cache/*
 ## Troubleshooting
 
 ### "Server not running" error
-Make sure the local server is running: `cd server && node index.js`
+
+**If running manually:** Make sure the server is running: `cd server && node index.js`
+
+**If using LaunchAgent:**
+```bash
+# Check if the service is loaded
+launchctl list | grep ltx
+
+# Check logs for errors
+tail -50 ~/Library/Logs/ltx-youtube-server.log
+
+# Common fixes:
+# 1. Wrong node path - run `which node` and update the plist
+# 2. Wrong index.js path - update to match your repo location
+# 3. Reload after fixing:
+launchctl unload ~/Library/LaunchAgents/com.ltx.youtube-server.plist
+launchctl load ~/Library/LaunchAgents/com.ltx.youtube-server.plist
+```
 
 ### AV1 codec errors
 Some YouTube videos use AV1 which may not decode on all systems. The server attempts to download H.264 format, but if you see AV1 errors, try clearing the cache and retrying.
